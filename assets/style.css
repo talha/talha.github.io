@@ -30,10 +30,11 @@ p { margin: 0 0 20px; }
 .certificates { color: var(--muted); white-space: nowrap; }
 .introduction > p:first-child { margin-bottom: 16px; }
 .social-links { margin-top: 24px; }
-/* Decorative brand marks keep the visible link text as the accessible name. */
+/* Decorative link icons keep the visible link text as the accessible name. */
 a[href="https://github.com/talha"]::before,
 a[href="https://www.linkedin.com/in/atalhaaydin/"]::before,
-a[href="https://twitter.com/atalhaaydin"]::before {
+a[href="https://twitter.com/atalhaaydin"]::before,
+a[href="/feed.xml"]::before {
   content: "";
   display: inline-block;
   flex-shrink: 0;
@@ -46,6 +47,7 @@ a[href="https://twitter.com/atalhaaydin"]::before {
 a[href="https://github.com/talha"]::before { mask: url("/assets/icons/github.svg") center / contain no-repeat; }
 a[href="https://www.linkedin.com/in/atalhaaydin/"]::before { mask: url("/assets/icons/linkedin.svg") center / contain no-repeat; }
 a[href="https://twitter.com/atalhaaydin"]::before { mask: url("/assets/icons/x.svg") center / contain no-repeat; }
+a[href="/feed.xml"]::before { mask: url("/assets/icons/rss.svg") center / contain no-repeat; }
 .writing-section { margin-top: 44px; }
 h2 { margin: 38px 0 17px; color: var(--accent); font-size: 20px; line-height: 1.5; font-weight: 700; }
 h2 a { text-decoration: none; }

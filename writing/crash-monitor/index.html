@@ -37,25 +37,25 @@
   <a class="skip" href="#main">Skip to content</a>
   <div class="site-shell">
     <header class="site-header">
-      <div class="site-name"><a href="/">Talha AYDIN</a></div>
-      <nav class="site-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/about/">About</a><a href="/archives/">Writing</a></nav>
+      <div class="site-name"><a href="/" target="_blank" rel="noopener">Talha AYDIN</a></div>
+      <nav class="site-nav" aria-label="Main navigation"><a href="/" target="_blank" rel="noopener">Home</a><a href="/about/" target="_blank" rel="noopener">About</a><a href="/archives/" target="_blank" rel="noopener">Writing</a></nav>
     </header>
     <main id="main">
       <article aria-labelledby="article-title">
         <header class="article-header">
           <h1 class="article-title" id="article-title">Crash Monitor: Windows crash detection for fuzzing</h1>
           <p class="article-subtitle">A Rust debugger, access-violation dumps, and a small TCP interface for boofuzz.</p>
-          <p class="byline"><a href="/about/" rel="author">Talha Aydın</a> · <time datetime="2026-10-18T19:27:40Z">2026-10-18</time> · Project notes · Rust / Windows / Fuzzing</p>
+          <p class="byline"><a href="/about/" rel="author noopener" target="_blank">Talha Aydın</a> · <time datetime="2026-10-18T19:27:40Z">2026-10-18</time> · Project notes · Rust / Windows / Fuzzing</p>
         </header>
         <div class="article-body">
-          <p><a href="https://github.com/talha/crash_monitor">crash_monitor</a> is a small Rust tool for monitoring a Windows program while it is being fuzzed. It attaches as a debugger, captures a memory dump when it observes an access violation, and exposes crash status to an external fuzzer over TCP.</p>
+          <p><a href="https://github.com/talha/crash_monitor" target="_blank" rel="noopener">crash_monitor</a> is a small Rust tool for monitoring a Windows program while it is being fuzzed. It attaches as a debugger, captures a memory dump when it observes an access violation, and exposes crash status to an external fuzzer over TCP.</p>
           <p>The project keeps input generation and process monitoring separate. The fuzzer sends test cases; Crash Monitor watches what happens inside the target process.</p>
           <nav class="toc" aria-label="Article contents"><p>In this article</p><ol><li><a href="#why-monitor">Why monitor the process?</a></li><li><a href="#debugger-loop">The debugger loop</a></li><li><a href="#crash-dumps">Capturing crash dumps</a></li><li><a href="#boofuzz">Connecting to boofuzz</a></li><li><a href="#running">Building and running</a></li><li><a href="#limitations">Scope and limitations</a></li></ol></nav>
           <h2 id="why-monitor">Why monitor the process?</h2>
           <p>A network fuzzer can observe a timeout or a dropped connection, but those symptoms do not explain whether the target hit an access violation, exited normally, or simply stopped responding. A debugger can provide a more specific signal, along with the process state needed for investigation.</p>
           <p>Crash Monitor focuses on that instrumentation layer. It does not generate test cases or determine whether a crash is exploitable. It records access-violation events and gives the fuzzer a way to notice them.</p>
           <h2 id="debugger-loop">The debugger loop</h2>
-          <p>The implementation uses Rust’s Windows bindings and the Win32 debugging API. In <a href="https://github.com/talha/crash_monitor/blob/master/src/main.rs"><code>src/main.rs</code></a>, the main loop:</p>
+          <p>The implementation uses Rust’s Windows bindings and the Win32 debugging API. In <a href="https://github.com/talha/crash_monitor/blob/master/src/main.rs" target="_blank" rel="noopener"><code>src/main.rs</code></a>, the main loop:</p>
           <ol><li>Starts the target executable supplied at the prompt.</li><li>Attaches with <code>DebugActiveProcess</code>.</li><li>Receives events through <code>WaitForDebugEvent</code>, tracking thread handles and exception information.</li><li>On <code>EXCEPTION_ACCESS_VIOLATION</code>, updates the shared crash counters and attempts to write a dump.</li><li>Detaches, attempts to terminate the target, and starts another monitoring cycle.</li></ol>
           <p>A separate thread serves the TCP status endpoint. The debugger and server share an <code>Arc&lt;CrashStatus&gt;</code> containing atomic counters, so the fuzzer can query status without directly participating in the debug-event loop.</p>
           <h2 id="crash-dumps">Capturing crash dumps</h2>
@@ -65,9 +65,9 @@
           <p>The access type is derived from the exception record and labelled <code>read</code>, <code>write</code>, or <code>dep</code>. The <code>dep</code> label corresponds to an execute-access violation. These labels help with initial triage; they are not an exploitability classification or a deduplication scheme.</p>
           <aside class="note"><p>Full-memory dumps may contain credentials, request data, or other sensitive process contents. Keep the target and its dumps inside an isolated test environment.</p></aside>
           <h2 id="boofuzz">Connecting to boofuzz</h2>
-          <p>The status server listens on TCP port <code>4444</code>. On connection, it writes the decimal crash-status counter as text. The bundled <a href="https://github.com/talha/crash_monitor/blob/master/boofuzz_fuzzer.py"><code>boofuzz_fuzzer.py</code></a> implements a custom <code>BaseMonitor</code>: after sending a test case, its <code>post_send</code> callback connects to the monitor and reads the response.</p>
+          <p>The status server listens on TCP port <code>4444</code>. On connection, it writes the decimal crash-status counter as text. The bundled <a href="https://github.com/talha/crash_monitor/blob/master/boofuzz_fuzzer.py" target="_blank" rel="noopener"><code>boofuzz_fuzzer.py</code></a> implements a custom <code>BaseMonitor</code>: after sending a test case, its <code>post_send</code> callback connects to the monitor and reads the response.</p>
           <p>The example treats the exact response <code>b"1"</code> as a crash and returns <code>False</code> to boofuzz. Other responses return <code>True</code>. Crash Monitor’s own outer loop handles starting the target again; the example’s custom monitor does not configure separate start or stop callbacks.</p>
-          <p>The included target is <a href="https://github.com/stephenbradshaw/vulnserver">Vulnserver</a>. For a same-machine lab, the example’s target and monitor addresses can be set to loopback:</p>
+          <p>The included target is <a href="https://github.com/stephenbradshaw/vulnserver" target="_blank" rel="noopener">Vulnserver</a>. For a same-machine lab, the example’s target and monitor addresses can be set to loopback:</p>
           <pre tabindex="0" aria-label="Local boofuzz configuration"><code>RHOST, RPORT = "127.0.0.1", 9999
 M_RHOST, M_RPORT = "127.0.0.1", 4444</code></pre>
           <p>The monitor binds to <code>0.0.0.0:4444</code>, not just loopback, and the status endpoint has no authentication. Restrict access with the lab network or host firewall; do not expose it to the internet.</p>
@@ -87,12 +87,12 @@ py -3 boofuzz_fuzzer.py</code></pre>
           <ul><li><strong>32-bit Windows only.</strong> The published implementation does not provide x64 debugging support.</li><li><strong>Access violations, not every failure.</strong> Other exception types and process exits do not use the same crash-reporting path. The handler also does not distinguish first-chance from second-chance access violations.</li><li><strong>Simple status synchronization.</strong> The server resets the status counter after serving it and sleeps for three seconds when the reported value is <code>1</code>. There is no per-test-case identifier or acknowledgement protocol. Polling timing matters, and the counter is not a durable event queue.</li><li><strong>Crash capture, not crash triage.</strong> The tool does not minimize inputs, deduplicate root causes, or establish exploitability. Retain the corresponding fuzzer inputs and investigate the dumps separately.</li></ul>
           <p>The useful boundary is small: observe an access violation, preserve state for analysis, and let an external fuzzer know that an event occurred. The repository includes the Rust monitor, the boofuzz example, and screenshots of the workflow.</p>
           <h2 id="references">Source and references</h2>
-          <ul><li><a href="https://github.com/talha/crash_monitor">Crash Monitor repository and README</a></li><li><a href="https://github.com/talha/crash_monitor/blob/master/src/main.rs">Rust debugger and TCP server implementation</a></li><li><a href="https://github.com/talha/crash_monitor/blob/master/boofuzz_fuzzer.py">boofuzz integration example</a></li><li><a href="https://github.com/OpenRCE/pydbg">pydbg</a> and <a href="https://github.com/gamozolabs/mesos">mesos</a>, referenced by the project</li></ul>
+          <ul><li><a href="https://github.com/talha/crash_monitor" target="_blank" rel="noopener">Crash Monitor repository and README</a></li><li><a href="https://github.com/talha/crash_monitor/blob/master/src/main.rs" target="_blank" rel="noopener">Rust debugger and TCP server implementation</a></li><li><a href="https://github.com/talha/crash_monitor/blob/master/boofuzz_fuzzer.py" target="_blank" rel="noopener">boofuzz integration example</a></li><li><a href="https://github.com/OpenRCE/pydbg" target="_blank" rel="noopener">pydbg</a> and <a href="https://github.com/gamozolabs/mesos" target="_blank" rel="noopener">mesos</a>, referenced by the project</li></ul>
         </div>
-        <footer class="article-end"><a href="/archives/">← All writing</a><p>Code and documentation: <a href="https://github.com/talha/crash_monitor">github.com/talha/crash_monitor</a></p></footer>
+        <footer class="article-end"><a href="/archives/" target="_blank" rel="noopener">← All writing</a><p>Code and documentation: <a href="https://github.com/talha/crash_monitor" target="_blank" rel="noopener">github.com/talha/crash_monitor</a></p></footer>
       </article>
     </main>
-    <footer class="site-footer"><span>© 2026 Talha Aydın</span><nav aria-label="Footer navigation"><a href="/archives/">Writing</a><a href="https://github.com/talha">GitHub</a><a href="/feed.xml">RSS</a></nav></footer>
+    <footer class="site-footer"><span>© 2026 Talha Aydın</span><nav aria-label="Footer navigation"><a href="/archives/" target="_blank" rel="noopener">Writing</a><a href="https://github.com/talha" target="_blank" rel="noopener">GitHub</a><a href="/feed.xml" target="_blank" rel="noopener">RSS</a></nav></footer>
   </div>
 </body>
 </html>
