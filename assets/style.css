@@ -1,5 +1,7 @@
 /* Minimal, light-only personal blog. Serve the site directory as the web root.
-   No framework, remote fonts, tracking, or client-side runtime. */
+   No framework, remote fonts, tracking, or client-side runtime.
+   HTML stylesheet links use the first 12 hex digits of this file's SHA-256
+   to invalidate CDN caches after CSS changes. */
 :root {
   color-scheme: light;
   --bg: #fdfdfb;
