@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://talhaaydin.com/sitemap.xml

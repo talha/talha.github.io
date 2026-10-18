@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Crash Monitor: Windows Crash Detection for Fuzzing — Talha Aydın</title>
+  <meta name="description" content="How crash_monitor uses Rust and the Windows debugging API to capture access-violation dumps, restart 32-bit targets, and report crashes to boofuzz over TCP.">
+  <meta name="author" content="Talha Aydın">
+  <link rel="canonical" href="https://talhaaydin.com/writing/crash-monitor/">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="icon" href="/images/favicon.ico">
+  <link rel="alternate" type="application/rss+xml" title="Talha Aydın — Writing" href="/feed.xml">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Crash Monitor: Windows crash detection for fuzzing">
+  <meta property="og:description" content="A Rust debugger, access-violation dumps, target restarts, and a small TCP interface for boofuzz.">
+  <meta property="og:url" content="https://talhaaydin.com/writing/crash-monitor/">
+  <meta property="og:site_name" content="Talha Aydın">
+  <meta property="og:locale" content="en_US">
+  <meta property="article:author" content="https://talhaaydin.com/about/">
+  <meta property="article:section" content="Project notes">
+  <meta property="article:published_time" content="2026-10-18T19:27:40Z">
+  <meta property="article:modified_time" content="2026-10-18T19:27:40Z">
+  <meta property="article:tag" content="Rust">
+  <meta property="article:tag" content="Windows">
+  <meta property="article:tag" content="Fuzzing">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:creator" content="@atalhaaydin">
+  <meta name="twitter:title" content="Crash Monitor: Windows crash detection for fuzzing">
+  <meta name="twitter:description" content="A Rust debugger, access-violation dumps, target restarts, and a small TCP interface for boofuzz.">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://talhaaydin.com/#person","name":"Talha Aydın","url":"https://talhaaydin.com/","sameAs":["https://github.com/talha","https://www.linkedin.com/in/atalhaaydin/"]},{"@type":"BlogPosting","@id":"https://talhaaydin.com/writing/crash-monitor/#article","mainEntityOfPage":{"@type":"WebPage","@id":"https://talhaaydin.com/writing/crash-monitor/"},"url":"https://talhaaydin.com/writing/crash-monitor/","headline":"Crash Monitor: Windows crash detection for fuzzing","description":"How crash_monitor uses Rust and the Windows debugging API to capture access-violation dumps, restart 32-bit targets, and report crashes to boofuzz over TCP.","datePublished":"2026-10-18T19:27:40Z","dateModified":"2026-10-18T19:27:40Z","author":{"@id":"https://talhaaydin.com/#person"},"inLanguage":"en","articleSection":"Project notes","keywords":["Rust","Windows debugging","fuzzing","boofuzz","crash dumps"],"isPartOf":{"@id":"https://talhaaydin.com/archives/#blog"},"about":{"@type":"SoftwareSourceCode","name":"crash_monitor","codeRepository":"https://github.com/talha/crash_monitor","programmingLanguage":"Rust","runtimePlatform":"32-bit Windows","license":"https://opensource.org/license/mit"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://talhaaydin.com/"},{"@type":"ListItem","position":2,"name":"Writing","item":"https://talhaaydin.com/archives/"},{"@type":"ListItem","position":3,"name":"Crash Monitor","item":"https://talhaaydin.com/writing/crash-monitor/"}]}]}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <div class="site-name"><a href="/">Talha AYDIN</a></div>
+      <nav class="site-nav" aria-label="Main navigation"><a href="/">Home</a><a href="/about/">About</a><a href="/archives/">Writing</a></nav>
+    </header>
+    <main id="main">
+      <article aria-labelledby="article-title">
+        <header class="article-header">
+          <h1 class="article-title" id="article-title">Crash Monitor: Windows crash detection for fuzzing</h1>
+          <p class="article-subtitle">A Rust debugger, access-violation dumps, and a small TCP interface for boofuzz.</p>
+          <p class="byline"><a href="/about/" rel="author">Talha Aydın</a> · <time datetime="2026-10-18T19:27:40Z">2026-10-18</time> · Project notes · Rust / Windows / Fuzzing</p>
+        </header>
+        <div class="article-body">
+          <p><a href="https://github.com/talha/crash_monitor">crash_monitor</a> is a small Rust tool for monitoring a Windows program while it is being fuzzed. It attaches as a debugger, captures a memory dump when it observes an access violation, and exposes crash status to an external fuzzer over TCP.</p>
+          <p>The project keeps input generation and process monitoring separate. The fuzzer sends test cases; Crash Monitor watches what happens inside the target process.</p>
+          <nav class="toc" aria-label="Article contents"><p>In this article</p><ol><li><a href="#why-monitor">Why monitor the process?</a></li><li><a href="#debugger-loop">The debugger loop</a></li><li><a href="#crash-dumps">Capturing crash dumps</a></li><li><a href="#boofuzz">Connecting to boofuzz</a></li><li><a href="#running">Building and running</a></li><li><a href="#limitations">Scope and limitations</a></li></ol></nav>
+          <h2 id="why-monitor">Why monitor the process?</h2>
+          <p>A network fuzzer can observe a timeout or a dropped connection, but those symptoms do not explain whether the target hit an access violation, exited normally, or simply stopped responding. A debugger can provide a more specific signal, along with the process state needed for investigation.</p>
+          <p>Crash Monitor focuses on that instrumentation layer. It does not generate test cases or determine whether a crash is exploitable. It records access-violation events and gives the fuzzer a way to notice them.</p>
+          <h2 id="debugger-loop">The debugger loop</h2>
+          <p>The implementation uses Rust’s Windows bindings and the Win32 debugging API. In <a href="https://github.com/talha/crash_monitor/blob/master/src/main.rs"><code>src/main.rs</code></a>, the main loop:</p>
+          <ol><li>Starts the target executable supplied at the prompt.</li><li>Attaches with <code>DebugActiveProcess</code>.</li><li>Receives events through <code>WaitForDebugEvent</code>, tracking thread handles and exception information.</li><li>On <code>EXCEPTION_ACCESS_VIOLATION</code>, updates the shared crash counters and attempts to write a dump.</li><li>Detaches, attempts to terminate the target, and starts another monitoring cycle.</li></ol>
+          <p>A separate thread serves the TCP status endpoint. The debugger and server share an <code>Arc&lt;CrashStatus&gt;</code> containing atomic counters, so the fuzzer can query status without directly participating in the debug-event loop.</p>
+          <h2 id="crash-dumps">Capturing crash dumps</h2>
+          <p>When an access violation arrives, the monitor requests the faulting thread’s context and calls <code>MiniDumpWriteDump</code> with <code>MiniDumpWithFullMemory</code> and <code>MiniDumpWithHandleData</code>. The intention is to preserve more than a single exception address: the dump can be opened in a debugger to inspect memory and execution state.</p>
+          <p>Dump filenames encode the crash counter, exception code, access type, and exception address:</p>
+          <pre tabindex="0" aria-label="Crash dump filename format"><code>crash_{counter}_{exception_code}_{access_type}_{address}.dmp</code></pre>
+          <p>The access type is derived from the exception record and labelled <code>read</code>, <code>write</code>, or <code>dep</code>. The <code>dep</code> label corresponds to an execute-access violation. These labels help with initial triage; they are not an exploitability classification or a deduplication scheme.</p>
+          <aside class="note"><p>Full-memory dumps may contain credentials, request data, or other sensitive process contents. Keep the target and its dumps inside an isolated test environment.</p></aside>
+          <h2 id="boofuzz">Connecting to boofuzz</h2>
+          <p>The status server listens on TCP port <code>4444</code>. On connection, it writes the decimal crash-status counter as text. The bundled <a href="https://github.com/talha/crash_monitor/blob/master/boofuzz_fuzzer.py"><code>boofuzz_fuzzer.py</code></a> implements a custom <code>BaseMonitor</code>: after sending a test case, its <code>post_send</code> callback connects to the monitor and reads the response.</p>
+          <p>The example treats the exact response <code>b"1"</code> as a crash and returns <code>False</code> to boofuzz. Other responses return <code>True</code>. Crash Monitor’s own outer loop handles starting the target again; the example’s custom monitor does not configure separate start or stop callbacks.</p>
+          <p>The included target is <a href="https://github.com/stephenbradshaw/vulnserver">Vulnserver</a>. For a same-machine lab, the example’s target and monitor addresses can be set to loopback:</p>
+          <pre tabindex="0" aria-label="Local boofuzz configuration"><code>RHOST, RPORT = "127.0.0.1", 9999
+M_RHOST, M_RPORT = "127.0.0.1", 4444</code></pre>
+          <p>The monitor binds to <code>0.0.0.0:4444</code>, not just loopback, and the status endpoint has no authentication. Restrict access with the lab network or host firewall; do not expose it to the internet.</p>
+          <h2 id="running">Building and running</h2>
+          <p>The repository documents a 32-bit Windows MSVC build using the nightly Rust toolchain. From a Windows environment with the required Rust and MSVC build tools:</p>
+          <pre tabindex="0" aria-label="Documented Windows build commands"><code>rustup toolchain install nightly-i686-pc-windows-msvc
+git clone https://github.com/talha/crash_monitor
+cd crash_monitor
+cargo +nightly-i686-pc-windows-msvc build --release</code></pre>
+          <p>Run the monitor in an elevated PowerShell session, as documented in the repository:</p>
+          <pre tabindex="0" aria-label="Starting Crash Monitor"><code>.\target\release\crash_monitor.exe</code></pre>
+          <p>At the process-path prompt, supply the target executable, for example <code>C:\lab\vulnserver.exe</code>. Configure the addresses in the supplied Python example, then start boofuzz:</p>
+          <pre tabindex="0" aria-label="Starting the documented boofuzz example"><code>py -3 -m pip install boofuzz==0.4.1
+py -3 boofuzz_fuzzer.py</code></pre>
+          <p>These commands reflect the repository’s documented setup, not a new compatibility test against current Windows or Rust releases. The project uses older dependency versions; consult the source and build output when reproducing it on a newer environment.</p>
+          <h2 id="limitations">Scope and limitations</h2>
+          <ul><li><strong>32-bit Windows only.</strong> The published implementation does not provide x64 debugging support.</li><li><strong>Access violations, not every failure.</strong> Other exception types and process exits do not use the same crash-reporting path. The handler also does not distinguish first-chance from second-chance access violations.</li><li><strong>Simple status synchronization.</strong> The server resets the status counter after serving it and sleeps for three seconds when the reported value is <code>1</code>. There is no per-test-case identifier or acknowledgement protocol. Polling timing matters, and the counter is not a durable event queue.</li><li><strong>Crash capture, not crash triage.</strong> The tool does not minimize inputs, deduplicate root causes, or establish exploitability. Retain the corresponding fuzzer inputs and investigate the dumps separately.</li></ul>
+          <p>The useful boundary is small: observe an access violation, preserve state for analysis, and let an external fuzzer know that an event occurred. The repository includes the Rust monitor, the boofuzz example, and screenshots of the workflow.</p>
+          <h2 id="references">Source and references</h2>
+          <ul><li><a href="https://github.com/talha/crash_monitor">Crash Monitor repository and README</a></li><li><a href="https://github.com/talha/crash_monitor/blob/master/src/main.rs">Rust debugger and TCP server implementation</a></li><li><a href="https://github.com/talha/crash_monitor/blob/master/boofuzz_fuzzer.py">boofuzz integration example</a></li><li><a href="https://github.com/OpenRCE/pydbg">pydbg</a> and <a href="https://github.com/gamozolabs/mesos">mesos</a>, referenced by the project</li></ul>
+        </div>
+        <footer class="article-end"><a href="/archives/">← All writing</a><p>Code and documentation: <a href="https://github.com/talha/crash_monitor">github.com/talha/crash_monitor</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><span>© 2026 Talha Aydın</span><nav aria-label="Footer navigation"><a href="/archives/">Writing</a><a href="https://github.com/talha">GitHub</a><a href="/feed.xml">RSS</a></nav></footer>
+  </div>
+</body>
+</html>

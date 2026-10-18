@@ -1,244 +1,59 @@
-<!DOCTYPE html>
-<html lang=en>
+<!doctype html>
+<!--
+  Static personal blog, served directly by GitHub Pages.
+  Local preview from the directory containing this file:
+    python3 -m http.server 8765 --bind 127.0.0.1
+  For another article: add writing/<slug>/index.html and link it from this
+  page, archives/index.html, feed.xml, and sitemap.xml. Give it a unique
+  title, description, canonical URL, and BlogPosting metadata. Keep
+  publication dates consistent across the page, metadata, and RSS.
+-->
+<html lang="en">
 <head>
-    <!-- so meta -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="HandheldFriendly" content="True">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="Cyber Security Consultant [@priviasecurity](https:&#x2F;&#x2F;www.priviasecurity.com&#x2F;)">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Talha AYDIN">
-<meta property="og:url" content="http://talhaaydin.com/index.html">
-<meta property="og:site_name" content="Talha AYDIN">
-<meta property="og:description" content="Cyber Security Consultant [@priviasecurity](https:&#x2F;&#x2F;www.priviasecurity.com&#x2F;)">
-<meta property="og:locale" content="en_US">
-<meta property="article:author" content="Talha AYDIN">
-<meta property="article:tag" content="security, programming">
-<meta name="twitter:card" content="summary">
-    
-    
-      
-        
-          <link rel="shortcut icon" href="/images/favicon.ico">
-        
-      
-      
-        
-          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
-        
-      
-      
-        
-          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-        
-      
-    
-    <!-- title -->
-    <title>Talha AYDIN</title>
-    <!-- styles -->
-    
-<link rel="stylesheet" href="/css/style.css">
-
-    <!-- persian styles -->
-    
-    <!-- rss -->
-    
-    
-	<!-- mathjax -->
-	
-<meta name="generator" content="Hexo 5.4.0"></head>
-
-<body class="max-width mx-auto px3 ltr">
-    
-    <div class="content index py4">
-        
-          <header id="header">
-  <a href="/">
-  
-    
-      <div id="logo" style="background-image: url(/images/logo.png);"></div>
-    
-  
-    <div id="title">
-      <h1>Talha AYDIN</h1>
-    </div>
-  </a>
-  <div id="nav">
-    <ul>
-      <li class="icon">
-        <a href="#" aria-label="Menu"><i class="fas fa-bars fa-2x"></i></a>
-      </li>
-       
-        <li><a href="/">Home</a></li>
-       
-        <li><a href="/about/">About</a></li>
-       
-        <li><a href="/archives/">Writing</a></li>
-       
-        <li><a target="_blank" rel="noopener" href="https://github.com/talha">Projects</a></li>
-      
-    </ul>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Talha Aydın — Offensive Security &amp; Technical Writing</title>
+  <meta name="description" content="Talha Aydın, Senior Penetration Tester. Technical writing on offensive security, reverse engineering, Rust, and fuzzing. OSEP and OSCP certified.">
+  <link rel="canonical" href="https://talhaaydin.com/">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="icon" href="/images/favicon.ico">
+  <link rel="alternate" type="application/rss+xml" title="Talha Aydın — Writing" href="/feed.xml">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Talha Aydın — Offensive Security &amp; Technical Writing">
+  <meta property="og:description" content="Personal notes on offensive security, reverse engineering, Rust, and fuzzing.">
+  <meta property="og:url" content="https://talhaaydin.com/">
+  <meta property="og:site_name" content="Talha Aydın">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:creator" content="@atalhaaydin">
+  <meta name="twitter:title" content="Talha Aydın — Offensive Security &amp; Technical Writing">
+  <meta name="twitter:description" content="Personal notes on offensive security, reverse engineering, Rust, and fuzzing.">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://talhaaydin.com/#person","name":"Talha Aydın","url":"https://talhaaydin.com/","jobTitle":"Senior Penetration Tester","sameAs":["https://github.com/talha","https://www.linkedin.com/in/atalhaaydin/","https://twitter.com/atalhaaydin"]},{"@type":"WebSite","@id":"https://talhaaydin.com/#website","url":"https://talhaaydin.com/","name":"Talha Aydın","inLanguage":"en","author":{"@id":"https://talhaaydin.com/#person"}},{"@type":"Blog","@id":"https://talhaaydin.com/archives/#blog","url":"https://talhaaydin.com/archives/","name":"Talha Aydın — Writing","inLanguage":"en","author":{"@id":"https://talhaaydin.com/#person"},"blogPost":[{"@type":"BlogPosting","@id":"https://talhaaydin.com/writing/crash-monitor/#article","url":"https://talhaaydin.com/writing/crash-monitor/","headline":"Crash Monitor: Windows crash detection for fuzzing","datePublished":"2026-10-18T19:27:40Z"}]}]}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <h1 class="site-name"><a href="/">Talha AYDIN</a></h1>
+      <nav class="site-nav" aria-label="Main navigation"><a href="/" aria-current="page">Home</a><a href="/about/">About</a><a href="/archives/">Writing</a></nav>
+    </header>
+    <main id="main">
+      <section class="introduction" aria-label="About Talha">
+        <p>Senior Penetration Tester. <span class="certificates">OSEP · OSCP</span></p>
+        <p>Notes on offensive security, reverse engineering, Rust, and fuzzing.</p>
+        <p class="social-links"><a href="https://github.com/talha" rel="me">GitHub</a> · <a href="https://www.linkedin.com/in/atalhaaydin/" rel="me">LinkedIn</a> · <a href="https://twitter.com/atalhaaydin" rel="me">X</a><br><a href="mailto:contact@talhaaydin.com">contact@talhaaydin.com</a> · <a href="https://talhaaydin.com/resource/pgpkey.asc">PGP key</a></p>
+      </section>
+      <section class="writing-section" aria-labelledby="writing-title">
+        <div class="section-heading"><h2 id="writing-title"><a href="/archives/">Writing</a></h2><a class="quiet-link" href="/feed.xml">RSS</a></div>
+        <ul class="post-list">
+          <li><article><h3><a href="/writing/crash-monitor/">Crash Monitor: Windows crash detection for fuzzing</a></h3><p class="post-summary">A Rust debugger, access-violation dumps, and a small TCP interface for boofuzz.</p><p class="post-meta"><time datetime="2026-10-18T19:27:40Z">2026-10-18</time> · Project notes · Rust · Windows · Fuzzing</p></article></li>
+        </ul>
+      </section>
+    </main>
+    <footer class="site-footer"><span>© 2026 Talha Aydın</span><nav aria-label="Footer navigation"><a href="/archives/">Writing</a><a href="https://github.com/talha">GitHub</a><a href="/feed.xml">RSS</a></nav></footer>
   </div>
-</header>
-
-        
-        <section id="about">
-  
-    <p>Cyber Security Consultant <a target="_blank" rel="noopener" href="https://www.priviasecurity.com/">@priviasecurity</a></p>
-
-  
-  
-    <p>
-      Find me on
-      
-      
-      
-        
-          <a class="icon" target="_blank" rel="noopener" href="https://github.com/talha" aria-label="github">
-            <i class="fab fa-github"></i><!--
-      ---></a><!--
-    ---><!--
-    --->, 
-        
-      
-        
-          <a class="icon" target="_blank" rel="noopener" href="https://twitter.com/atalhaaydin" aria-label="twitter">
-            <i class="fab fa-twitter"></i><!--
-      ---></a><!--
-    ---><!--
-    --->, 
-        
-      
-        
-          <a class="icon" target="_blank" rel="noopener" href="https://linkedin.com/in/atalhaaydin" aria-label="linkedin">
-            <i class="fab fa-linkedin"></i><!--
-      ---></a><!--
-    ---><!--
-    --->, 
-        
-      
-        
-          <a class="icon" target="_blank" rel="noopener" href="/resource/pgpkey.asc" aria-label="keybase">
-            <i class="fab fa-keybase"></i><!--
-      ---></a><!--
-    ---><!--
-    ---> and 
-        
-      
-        
-          <a class="icon" target="_blank" rel="noopener" href="mailto:contact@talhaaydin.com" aria-label="mail">
-            <i class="fas fa-envelope"></i><!--
-      ---></a>
-        <!--
-    --->.
-        
-      
-    </p>
-  
-</section>
-
-<section id="writing">
-  <span class="h1"><a href="/archives/">Writing</a></span>
-  
-  <ul class="post-list">
-    
-    
-      
-    
-    
-      <li class="post-item">
-        
-    <div class="meta">
-      
-        
-          <time datetime="2021-07-25T21:47:05.328Z" itemprop="datePublished">2021-07-26</time>
-        
-      
-    </div>
-
-
-        <span>
-    
-        <a class="" href="/2021/07/26/hello-world/">Hello World</a>
-    
-
-
-</span>
-      </li>
-    
-  </ul>
-  
-</section>
-
-
-
-        
-        <footer id="footer">
-  <div class="footer-left">
-    Copyright &copy;
-    
-    
-    2016-2021
-    Talha AYDIN
-  </div>
-  <div class="footer-right">
-    <nav>
-      <ul>
-         
-          <li><a href="/">Home</a></li>
-         
-          <li><a href="/about/">About</a></li>
-         
-          <li><a href="/archives/">Writing</a></li>
-         
-          <li><a target="_blank" rel="noopener" href="https://github.com/talha">Projects</a></li>
-        
-      </ul>
-    </nav>
-  </div>
-</footer>
-
-    </div>
-    <!-- styles -->
-
-
-
-  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
-
-
-    <!-- jquery -->
- 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
-
-
-
-
-<!-- clipboard -->
-
-
-<script src="/js/main.js"></script>
-
-<!-- search -->
-
-<!-- Google Analytics -->
-
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3WNXST3ZME"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-3WNXST3ZME');
-    </script>
-
-<!-- Baidu Analytics -->
-
-<!-- Cloudflare Analytics -->
-
-<!-- Umami Analytics -->
-
-<!-- Disqus Comments -->
-
-
 </body>
 </html>
